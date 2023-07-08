@@ -22,23 +22,19 @@ def generate_turkish_car_plate_number():
     plate_number += str(fake.random_number(digits=3))   # Random digits (converted to string)
     return plate_number
 
-for _ in range(50):
+for _ in range(80):
     user_id = str(uuid.uuid4())[:8]
     full_name = generate_turkish_male_full_name()
     password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(8))
     carplate = generate_turkish_car_plate_number()
     phone_number = generate_turkish_phone_number()
-    is_available = fake.boolean()
-    capacity = "20"
     
     user_data.append({
         'user_id': user_id,        
         'password': password,
         'full_name': full_name,
         'carplate': carplate,
-        'phone_number': phone_number,
-        'is_available': is_available,
-        'capacity': capacity
+        'phone_number': phone_number
     })
 
 df = pd.DataFrame(user_data)
