@@ -51,6 +51,3 @@ def lambda_handler(event, context):
             Key={'id': {'S': drivers[i][0]}},
             UpdateExpression=f"SET driverId = :val",
             ExpressionAttributeValues={':val': {'S': ",".join(grouped.loc[i, "id"])}})
-
-
-lambda_handler(0, 0)
