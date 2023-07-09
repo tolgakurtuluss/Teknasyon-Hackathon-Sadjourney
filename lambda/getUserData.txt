@@ -1,0 +1,59 @@
+import boto3
+import json
+
+dynamodb = boto3.client("dynamodb")
+
+
+def lambda_handler(event, context):
+    table = "Driver" if int(event['queryStringParameters']['isDriver']) else "Employee"
+    response = dynamodb.get_item(TableName=table,
+                                 Key={'id': {'S': event['queryStringParameters']['id']}})
+
+    if "Item" in response:
+
+        del response["Item"]["password"]
+        if table == "Employee":
+            attendance = str(int(response["Item"]["mo"]["BOOL"])) + "," + str(int(response["Item"]["tu"]["BOOL"])) + \
+                         "," + str(int(response["Item"]["we"]["BOOL"])) + "," + str(int(response["Item"]["th"]["BOOL"])) \
+                         + "," + str(int(response["Item"]["fr"]["BOOL"])) + "," + \
+                         str(int(response["Item"]["sa"]["BOOL"])) + "," + str(int(response["Item"]["su"]["BOOL"]))
+            del response["Item"]["mo"]
+            del response["Item"]["tu"]
+            del response["Item"]["we"]
+            del response["Item"]["th"]
+            del response["Item"]["fr"]
+            del response["Item"]["sa"]
+            del response["Item"]["su"]
+            response["Item"]["attendance"] = attendance
+
+            if "driverId" in response["Item"]:
+                response2 = dynamodb.get_item(TableName="Driver",
+                                             Key={'id': {'S': response["Item"]["driverId"]["S"]}})
+                response["Item"]["driverPhone"] = response2["Item"]["phone"]["S"]
+                response["Item"]["plate"] = response2["Item"]["plate"]["S"]
+            else:
+                response["Item"]["driverPhone"] = "-"
+                response["Item"]["plate"] = "-"
+        else:
+            response2 = dynamodb.get_item(TableName="links",
+                                          Key={'id': {'S': response["Item"]["id"]["S"]}})
+            if "Item" in response2:
+                if "link" in response2["Item"]:
+                    response["Item"]["link"] = response2["Item"]["link"]["S"]
+                else:
+                    response["Item"]["link"] = "-"
+            else:
+                response["Item"]["link"] = "-"
+        return {
+            'statusCode': 200,
+            'body': json.dumps(response["Item"]),
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        }
+    else:
+
+        return {
+            'statusCode': 400,
+            'body': json.dumps("User does not exist")}
